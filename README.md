@@ -83,6 +83,5 @@ GitHub Releases 页面提供了基于 JDK8 编译的 jar 包
 
 ## Todo
 
-- [ ] 加入 Auth 头认证
 - [ ] 兼容更多中间件
 - [ ] 想到了再写

