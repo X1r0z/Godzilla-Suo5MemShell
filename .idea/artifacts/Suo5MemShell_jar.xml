@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Suo5MemShell:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Suo5MemShell_jar</output-path>
+    <root id="archive" name="Suo5MemShell.jar">
+      <element id="module-output" name="Suo5MemShell" />
+    </root>
+  </artifact>
+</component>
