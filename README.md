@@ -8,6 +8,7 @@ Godzilla 插件: 一键注入 Suo5 内存马
 - Tomcat Servlet
 - WebLogic Filter
 - Jetty Filter
+- Resin Filter
 
 后续会添加其它中间件的支持
 
@@ -70,7 +71,15 @@ filterName 为可选项, 如果为空则使用 Godzilla 默认生成的随机名
 
 目前不支持卸载 Jetty Filter, 待解决
 
-![img15.png](img/img16.png)
+![img16.png](img/img16.png)
+
+### 注入 Resin Filter 内存马
+
+需要指定 urlPattern
+
+目前不支持卸载 Resin Filter, 待解决
+
+![img17.png](img/img17.png)
 
 ## Compile
 

