@@ -2,7 +2,13 @@
 
 Godzilla 插件: 一键注入 Suo5 内存马
 
-目前支持 Servlet/Filter 型内存马, 后续会添加其它中间件的支持
+目前支持的中间件和内存马类型
+
+- Tomcat Filter
+- Tomcat Servlet
+- WebLogic Filter (仅半双工模式)
+
+后续会添加其它中间件的支持
 
 参考:
 
@@ -10,9 +16,9 @@ Godzilla 插件: 一键注入 Suo5 内存马
 
 [https://github.com/BeichenDream/Godzilla](https://github.com/BeichenDream/Godzilla)
 
-## Usage
+注意 Releases 中的 jar 不一定是最新的, 建议按照下面的说明自行手动编译
 
-Godzilla-Suo5MemShell 目前支持 Filter 和 Servlet 两种内存马
+## Usage
 
 内存马注入部分参考了 Godzilla 内置的 FilterShell 和 MemoryShell 插件
 
@@ -20,7 +26,7 @@ Godzilla-Suo5MemShell 目前支持 Filter 和 Servlet 两种内存马
 
 ![img14.png](img/img14.png)
 
-### 注入 Filter 内存马
+### 注入 Tomcat Filter 内存马
 
 需要指定 urlPattern, 一般不建议设置为 `/*`
 
@@ -37,7 +43,7 @@ filterName 为可选项, 如果为空则使用 Godzilla 默认生成的随机名
 
 如果想要删除注入的 Suo5 内存马, 需要在 FilterShell 插件中操作
 
-### 注入 Servlet 内存马
+### 注入 Tomcat Servlet 内存马
 
 需要指定 urlPattern (servletPath), 注意该参数必须指定且不能与已有的 Servlet 名称冲突
 
@@ -48,6 +54,14 @@ filterName 为可选项, 如果为空则使用 Godzilla 默认生成的随机名
 ![img13.png](img/img13.png)
 
 同样, 如果想要删除注入的 Suo5 内存马, 需要在 ServletManage 插件中操作
+
+### 注入 WebLogic Filter 内存马
+
+需要指定 urlPattern
+
+目前仅支持 Suo5 的半双工模式, 以及不支持卸载 WebLogic Filter, 待解决
+
+![img15.png](img/img15.png)
 
 ## Compile
 
