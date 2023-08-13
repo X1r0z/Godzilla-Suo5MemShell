@@ -9,14 +9,25 @@ Godzilla 插件: 一键注入 Suo5 内存马
 - WebLogic Filter
 - Jetty Filter
 - Resin Filter
+- JBoss/WildFly Filter
 
-后续会添加其它中间件的支持
+具体版本的兼容性参考 GodzillaMemoryShellProject
+
+```
+Tomcat 5 - 10
+Jetty 7 - 11.0.11
+JBoss (WildFly) 8 - 27.0.0
+Resin 3 - 4.0.66
+WebLogic 10.3.6 - 14
+```
 
 参考:
 
 [https://github.com/zema1/suo5](https://github.com/zema1/suo5)
 
 [https://github.com/BeichenDream/Godzilla](https://github.com/BeichenDream/Godzilla)
+
+[https://github.com/BeichenDream/GodzillaMemoryShellProject](https://github.com/BeichenDream/GodzillaMemoryShellProject)
 
 注意 Releases 中的 jar 不一定是最新的, 建议按照下面的说明自行手动编译
 
@@ -81,6 +92,14 @@ filterName 为可选项, 如果为空则使用 Godzilla 默认生成的随机名
 
 ![img17.png](img/img17.png)
 
+### 注入 JBoss/WildFly Filter 内存马
+
+需要指定 urlPattern
+
+目前不支持卸载 JBoss/WildFly Filter, 待解决
+
+![img18.png](img/img18.png)
+
 ## Compile
 
 GitHub Releases 页面提供了基于 JDK8 编译的 jar 包
@@ -115,5 +134,6 @@ GitHub Releases 页面提供了基于 JDK8 编译的 jar 包
 
 ## Todo
 
-- [ ] 兼容更多中间件
+- [x] 兼容更多中间件
+- [ ] 插件体验优化
 - [ ] 想到了再写
