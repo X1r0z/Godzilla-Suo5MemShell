@@ -47,28 +47,35 @@ WebLogic 10.3.6 - 14
 
 filterName 为可选项, 如果为空则使用 Godzilla 默认生成的随机名称
 
-![img9.png](img/img9.png)
-
-
-![img10.png](img/img10.png)
+![img20](img/img20.png)
 
 在 Godzilla 自带的 FilterShell 插件中可以看到注入的 Filter 内存马
 
-![img11.png](img/img11.png)
+![img21.png](img/img21.png)
 
-如果想要删除注入的 Suo5 内存马, 需要在 FilterShell 插件中操作
+插件支持一键删除注入的 Filter 内存马
+
+注意 urlPattern 和 filterName 要和之前设置的值对应
+
+![img22.png](img/img22.png)
 
 ### 注入 Tomcat Servlet 内存马
 
-需要指定 urlPattern (servletPath), 注意该参数必须指定且不能与已有的 Servlet 名称冲突
+需要指定 urlPattern
 
-![img12.png](img/img12.png)
+wrapperName 为可选项, 如果为空则使用 Godzilla 默认生成的随机名称
+
+![img23.png](img/img23.png)
 
 在 Godzilla 自带的 ServletManage 插件中可以看到注入的 Servlet 内存马
 
-![img13.png](img/img13.png)
+![img24.png](img/img24.png)
 
-同样, 如果想要删除注入的 Suo5 内存马, 需要在 ServletManage 插件中操作
+插件支持一键删除注入的 Servlet 内存马
+
+注意 urlPattern 和 wrapperName 要和之前设置的值对应
+
+![img25.png](img/img25.png)
 
 ## 注入 Spring Controller 内存马
 

