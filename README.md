@@ -23,7 +23,7 @@ WebLogic 10.3.6 - 14
 
 支持一键删除注入的 Tomcat/Spring 内存马
 
-**⚠️ 注意删除内存马的过程本身存在一定风险, 如果使用不当 (例如参数输入错误) 可能会对正常业务造成影响**
+**⚠️ 删除内存马的过程本身存在一定风险, 如果使用不当 (例如参数输入错误) 可能会对正常业务造成影响**
 
 参考:
 
@@ -33,7 +33,7 @@ WebLogic 10.3.6 - 14
 
 [https://github.com/BeichenDream/GodzillaMemoryShellProject](https://github.com/BeichenDream/GodzillaMemoryShellProject)
 
-注意 Releases 中的 jar 不一定是最新的, 建议按照下面的说明自行手动编译
+Releases 中的 jar 不一定是最新的, 建议按照下面的说明自行手动编译
 
 如果使用过程中出现问题欢迎提 issues
 
