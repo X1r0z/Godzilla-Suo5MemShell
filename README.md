@@ -4,14 +4,14 @@ Godzilla 插件: 一键注入 Suo5 内存马
 
 目前支持的中间件和内存马类型
 
-- Tomcat Filter
-- Tomcat Servlet
+- Tomcat Filter/Servlet
+- Spring Controller
 - WebLogic Filter
 - Jetty Filter
 - Resin Filter
 - JBoss/WildFly Filter
 
-具体版本的兼容性参考 GodzillaMemoryShellProject
+部分中间件的兼容性参考 GodzillaMemoryShellProject
 
 ```
 Tomcat 5 - 10
@@ -30,6 +30,8 @@ WebLogic 10.3.6 - 14
 [https://github.com/BeichenDream/GodzillaMemoryShellProject](https://github.com/BeichenDream/GodzillaMemoryShellProject)
 
 注意 Releases 中的 jar 不一定是最新的, 建议按照下面的说明自行手动编译
+
+如果使用过程中出现问题欢迎提 issues
 
 ## Usage
 
@@ -67,6 +69,16 @@ filterName 为可选项, 如果为空则使用 Godzilla 默认生成的随机名
 ![img13.png](img/img13.png)
 
 同样, 如果想要删除注入的 Suo5 内存马, 需要在 ServletManage 插件中操作
+
+## 注入 Spring Controller 内存马
+
+仅支持基于 Servlet API 的 Spring 应用
+
+需要指定 urlPattern
+
+目前不支持卸载 Spring Controller, 待解决
+
+![img19.png](img/img19.png)
 
 ### 注入 WebLogic Filter 内存马
 
@@ -106,34 +118,35 @@ GitHub Releases 页面提供了基于 JDK8 编译的 jar 包
 
 当然你也可以选择自己手动编译
 
-打开 IDEA 的项目结构, 点击 模块, 手动导入 godzilla.jar 和 Tomcat 依赖 (位于 Tomcat 路径的 `lib/` 目录)
+克隆本项目
 
-![img1.png](img/img1.png)
+```shell
+git clone https://github.com/X1r0z/Godzilla-Suo5MemShell
+```
 
-点击 工件, 依照图示添加 JAR
+修改 pom.xml 中 godzilla 依赖的 systemPath 为自己本地的路径
 
-![img2.png](img/img2.png)
+```xml
+<dependency>
+    <groupId>godzilla</groupId>
+    <artifactId>godzilla</artifactId>
+    <version>0.1.0</version>
+    <scope>system</scope>
+    <systemPath>/Users/exp10it/Downloads/godzilla.jar</systemPath>
+</dependency>
+```
 
-默认回车即可
+在当前项目目录执行如下命令
 
-![img3.png](img/img3.png)
+```shell
+mvn package -Dmaven.test.skip=true
+```
 
-然后将输出布局中的以 "已提取" 开头的项全部删掉, 只留下 `Suo5MemShell 编译输出`
-
-![img4.png](img/img4.png)
-
-![img5.png](img/img5.png)
-
-点击 构建 - 构建工件, 选择 `Suo5MemShell:jar` 并构建
-
-![img6.png](img/img6.png)
-
-![img7.png](img/img7.png)
-
-编译好的 jar 位于当前项目的 `out` 目录
+生成的 jar 位于 `target` 目录
 
 ## Todo
 
 - [x] 兼容更多中间件
+- [ ] 支持卸载 Suo5 内存马
 - [ ] 插件体验优化
 - [ ] 想到了再写
