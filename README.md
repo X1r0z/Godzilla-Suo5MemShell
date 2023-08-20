@@ -21,6 +21,10 @@ Resin 3 - 4.0.66
 WebLogic 10.3.6 - 14
 ```
 
+支持一键删除注入的 Tomcat/Spring 内存马
+
+**⚠️ 注意删除内存马的过程本身存在一定风险, 如果使用不当 (例如参数输入错误) 可能会对正常业务造成影响**
+
 参考:
 
 [https://github.com/zema1/suo5](https://github.com/zema1/suo5)
@@ -83,9 +87,11 @@ wrapperName 为可选项, 如果为空则使用 Godzilla 默认生成的随机�
 
 需要指定 urlPattern
 
-目前不支持卸载 Spring Controller, 待解决
-
 ![img19.png](img/img19.png)
+
+插件支持一键删除注入的 Spring Controller 内存马
+
+![img26.png](img/img26.png)
 
 ### 注入 WebLogic Filter 内存马
 
