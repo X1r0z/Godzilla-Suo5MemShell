@@ -1,5 +1,7 @@
 # Godzilla-Suo5MemShell
 
+> 非钓鱼项目, 只是碰巧是在 hw 期间写的... 源码都是公开的, Releases 里的 jar 也没有任何问题
+
 Godzilla 插件: 一键注入 Suo5 内存马
 
 目前支持的中间件和内存马类型
