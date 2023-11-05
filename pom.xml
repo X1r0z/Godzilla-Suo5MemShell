@@ -38,7 +38,7 @@
             <artifactId>godzilla</artifactId>
             <version>0.1.0</version>
             <scope>system</scope>
-            <systemPath>/Users/exp10it/Downloads/godzilla.jar</systemPath>
+            <systemPath>/Applications/Godzilla.app/Contents/Java/godzilla.jar</systemPath>
         </dependency>
     </dependencies>
 

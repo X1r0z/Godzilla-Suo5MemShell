@@ -71,7 +71,6 @@ public class Suo5MemShell implements Plugin {
         this.panel.add(this.splitPane);
     }
 
-
     private void injectButtonClick(ActionEvent actionEvent) {
         try {
             String urlPattern = this.urlPatternTextField.getText();
@@ -111,7 +110,7 @@ public class Suo5MemShell implements Plugin {
                     GOptionPane.showMessageDialog(this.panel, "loader fail!", "提示", 2);
                 }
             } else {
-                GOptionPane.showMessageDialog(this.panel, "url pattern is Null", "提示", 2);
+                GOptionPane.showMessageDialog(this.panel, "url pattern is null", "提示", 2);
             }
         } catch (Exception var13) {
             Log.error(var13);

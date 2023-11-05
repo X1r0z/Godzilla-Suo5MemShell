@@ -1,7 +1,5 @@
 # Godzilla-Suo5MemShell
 
-> 非钓鱼项目, 只是碰巧是在 hw 期间写的... 源码都是公开的, Releases 里的 jar 也没有任何问题
-
 Godzilla 插件: 一键注入 Suo5 内存马
 
 目前支持的中间件和内存马类型
@@ -13,7 +11,7 @@ Godzilla 插件: 一键注入 Suo5 内存马
 - Resin Filter
 - JBoss/WildFly Filter
 
-部分中间件的兼容性参考 GodzillaMemoryShellProject
+部分中间件的兼容性参考 [BeichenDream/GodzillaMemoryShellProject](https://github.com/BeichenDream/GodzillaMemoryShellProject)
 
 ```
 Tomcat 5 - 10
@@ -23,9 +21,9 @@ Resin 3 - 4.0.66
 WebLogic 10.3.6 - 14
 ```
 
-支持一键删除注入的 Tomcat/Spring 内存马
+目前支持一键删除注入的 Tomcat/Spring 内存马
 
-**⚠️ 删除内存马的过程本身存在一定风险, 如果使用不当 (例如参数输入错误) 可能会对正常业务造成影响**
+>  **⚠️ 删除内存马的过程本身存在一定风险, 如果使用不当 (例如参数输入错误) 可能会对正常业务造成影响**
 
 参考:
 
@@ -83,7 +81,7 @@ wrapperName 为可选项, 如果为空则使用 Godzilla 默认生成的随机�
 
 ![img25.png](img/img25.png)
 
-## 注入 Spring Controller 内存马
+### 注入 Spring Controller 内存马
 
 仅支持基于 Servlet API 的 Spring 应用
 
@@ -95,37 +93,14 @@ wrapperName 为可选项, 如果为空则使用 Godzilla 默认生成的随机�
 
 ![img26.png](img/img26.png)
 
-### 注入 WebLogic Filter 内存马
+### Others
 
-需要指定 urlPattern
+以下内存马的注入仅需配置 urlPattern 参数, 暂不支持卸载
 
-目前不支持卸载 WebLogic Filter, 待解决
-
-![img15.png](img/img15.png)
-
-### 注入 Jetty Filter 内存马
-
-需要指定 urlPattern
-
-目前不支持卸载 Jetty Filter, 待解决
-
-![img16.png](img/img16.png)
-
-### 注入 Resin Filter 内存马
-
-需要指定 urlPattern
-
-目前不支持卸载 Resin Filter, 待解决
-
-![img17.png](img/img17.png)
-
-### 注入 JBoss/WildFly Filter 内存马
-
-需要指定 urlPattern
-
-目前不支持卸载 JBoss/WildFly Filter, 待解决
-
-![img18.png](img/img18.png)
+- WebLogic Filter
+- Jetty Filter
+- Resin Filter
+- JBoss/WildFly Filter
 
 ## Compile
 
@@ -162,6 +137,6 @@ mvn package -Dmaven.test.skip=true
 ## Todo
 
 - [x] 兼容更多中间件
-- [ ] 支持卸载 Suo5 内存马
+- [x] 支持卸载 Suo5 内存马 (Tomcat/Spring)
 - [ ] 插件体验优化
 - [ ] 想到了再写
