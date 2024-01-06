@@ -23,8 +23,6 @@ WebLogic 10.3.6 - 14
 
 目前支持一键删除注入的 Tomcat/Spring 内存马
 
->  **⚠️ 删除内存马的过程本身存在一定风险, 如果使用不当 (例如参数输入错误) 可能会对正常业务造成影响**
-
 参考:
 
 [https://github.com/zema1/suo5](https://github.com/zema1/suo5)
@@ -57,12 +55,6 @@ filterName 为可选项, 如果为空则使用 Godzilla 默认生成的随机名
 
 ![img21.png](img/img21.png)
 
-插件支持一键删除注入的 Filter 内存马
-
-注意 urlPattern 和 filterName 要和之前设置的值对应
-
-![img22.png](img/img22.png)
-
 ### 注入 Tomcat Servlet 内存马
 
 需要指定 urlPattern
@@ -75,12 +67,6 @@ wrapperName 为可选项, 如果为空则使用 Godzilla 默认生成的随机�
 
 ![img24.png](img/img24.png)
 
-插件支持一键删除注入的 Servlet 内存马
-
-注意 urlPattern 和 wrapperName 要和之前设置的值对应
-
-![img25.png](img/img25.png)
-
 ### 注入 Spring Controller 内存马
 
 仅支持基于 Servlet API 的 Spring 应用
@@ -88,10 +74,6 @@ wrapperName 为可选项, 如果为空则使用 Godzilla 默认生成的随机�
 需要指定 urlPattern
 
 ![img19.png](img/img19.png)
-
-插件支持一键删除注入的 Spring Controller 内存马
-
-![img26.png](img/img26.png)
 
 ### Others
 
@@ -137,6 +119,5 @@ mvn package -Dmaven.test.skip=true
 ## Todo
 
 - [x] 兼容更多中间件
-- [x] 支持卸载 Suo5 内存马 (Tomcat/Spring)
 - [ ] 插件体验优化
 - [ ] 想到了再写

