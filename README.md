@@ -21,8 +21,6 @@ Resin 3 - 4.0.66
 WebLogic 10.3.6 - 14
 ```
 
-目前支持一键删除注入的 Tomcat/Spring 内存马
-
 参考:
 
 [https://github.com/zema1/suo5](https://github.com/zema1/suo5)
